@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FotoForge Pro - Advanced Camera & Photo Editor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        /* --- Global Variables & Base Styles --- */
+        :root {
+            --dark-bg: #1a1a2e;
+            --darker-bg: #0f0f1d;
+            --light-text: #e0e0e0;
+            --accent-color: #e94560; /* Vibrant red/pink */
+            --button-hover: #c73650;
+            --border-color: #3e2f5b;
+            --shadow-color: rgba(0, 0, 0, 0.4);
+            --control-panel-width-desktop: 320px;
+        }
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--dark-bg);
+            color: var(--light-text);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow-x: hidden;
+            align-items: center;
+        }
+
+        h1 {
+            font-family: 'Montserrat', sans-serif;
+            color: var(--accent-color);
+            text-align: center;
+            padding: 20px 10px;
+            margin-bottom: 0;
+            font-size: 2.8em;
+            letter-spacing: 1px;
+        }
+
+        /* --- Main Container & Layout --- */
+        .container {
+            flex-grow: 1;
+            width: 98%;
+            max-width: 1400px;
+            display: flex;
+            flex-direction: column; /* Stacked on mobile */
+            gap: 20px;
+            padding: 20px 0;
+            box-sizing: border-box;
+        }
+
+        /* --- Camera/Canvas Area --- */
+        .camera-canvas-area {
+            background-color: var(--darker-bg);
+            border-radius: 12px;
+            box-shadow: 0 8px 25px var(--shadow-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+            min-height: 300px;
+            flex: 1; /* Takes remaining space on desktop */
+            min-width: 0; /* Allow shrinking */
+        }
+
+        video, canvas {
+            max-width: 100%;
+            max-height: calc(100vh - 180px); /* Adjust based on header/footer/padding */
+            display: block;
+            border-radius: 10px;
+        }
+
+        .video-feed {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* --- Control Panel --- */
+        .control-panel {
+            background-color: var(--darker-bg);
+            border-radius: 12px;
+            box-shadow: 0 8px 25px var(--shadow-color);
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            flex-shrink: 0; /* Prevent panel from shrinking */
+            width: 100%; /* Full width on mobile */
+        }
+
+        .tool-section {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+        .tool-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .tool-section h3 {
+            color: var(--accent-color);
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+            font-weight: 600;
+        }
+
+        .control-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .control-group.sliders {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .control-group.sliders label {
+            flex-basis: 100%;
+            text-align: left;
+            margin-bottom: 0px;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .control-group.sliders input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            background: var(--border-color);
+            height: 6px;
+            border-radius: 5px;
+            outline: none;
+            margin: 0; /* Override default margin */
+        }
+
+        .control-group.sliders input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            cursor: pointer;
+            border: 2px solid var(--light-text);
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+
+        .control-group.sliders input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            cursor: pointer;
+            border: 2px solid var(--light-text);
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+
+        .control-button {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: background-color 0.3s ease, transform 0.2s ease, filter 0.2s ease;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            flex-grow: 1; /* Allow buttons to expand */
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .control-button:hover:not(:disabled) {
+            background-color: var(--button-hover);
+            transform: translateY(-2px);
+        }
+
+        .control-button.active {
+            background-color: var(--button-hover);
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.4);
+            transform: translateY(1px);
+        }
+
+        .control-button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            opacity: 0.7;
+        }
+
+        /* Text Overlay Specific Styles */
+        .text-overlay-inputs input[type="text"],
+        .text-overlay-inputs input[type="color"],
+        .text-overlay-inputs input[type="number"] {
+            background-color: var(--dark-bg);
+            border: 1px solid var(--border-color);
+            color: var(--light-text);
+            padding: 8px;
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+
+        .text-overlay-inputs label {
+            font-size: 0.9em;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        /* Cropping overlay */
+        #croppingOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Allows clicks to pass through to underlying canvas */
+            box-sizing: border-box;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        #croppingOverlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .crop-guide {
+            position: absolute;
+            border: 2px dashed #00bfff; /* Cyan dashed border */
+            box-sizing: border-box;
+            background-color: rgba(0, 191, 255, 0.1); /* Light transparent fill */
+            cursor: grab;
+        }
+        .crop-guide.dragging {
+            cursor: grabbing;
+        }
+
+        .resizer {
+            width: 12px;
+            height: 12px;
+            background: white;
+            border: 2px solid var(--accent-color);
+            position: absolute;
+            border-radius: 50%;
+            box-sizing: border-box;
+        }
+        .resizer.nw { top: -6px; left: -6px; cursor: nwse-resize; }
+        .resizer.ne { top: -6px; right: -6px; cursor: nesw-resize; }
+        .resizer.sw { bottom: -6px; left: -6px; cursor: nesw-resize; }
+        .resizer.se { bottom: -6px; right: -6px; cursor: nwse-resize; }
+
+        /* General Messages */
+        .message {
+            text-align: center;
+            color: var(--accent-color);
+            padding: 15px;
+            border-radius: 8px;
+            background-color: rgba(233, 69, 96, 0.1);
+            margin-top: 20px;
+            display: none;
+            width: 80%;
+        }
+
+        .message.active {
+            display: block;
+        }
+
+        /* --- Footer --- */
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 30px;
+            color: var(--light-text);
+            font-size: 0.9em;
+        }
+
+        /* --- Responsive Design --- */
+        @media (min-width: 769px) {
+            h1 { font-size: 3.2em; padding: 30px 10px 20px; }
+            .container {
+                flex-direction: row; /* Side-by-side on desktop */
+                gap: 30px;
+                padding: 20px;
+                height: calc(100vh - 100px); /* Fill remaining height */
+                align-items: stretch; /* Stretch children to fill height */
+            }
+
+            .camera-canvas-area {
+                flex: 3; /* Main area takes more space */
+                min-height: auto;
+            }
+
+            .control-panel {
+                width: var(--control-panel-width-desktop); /* Fixed width for panel */
+                flex-basis: var(--control-panel-width-desktop);
+                padding: 30px;
+                overflow-y: auto; /* Scrollable if content overflows */
+                height: 100%;
+            }
+
+            .control-group.sliders {
+                align-items: flex-start;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2em; padding: 15px 10px; }
+            .container { padding: 15px; gap: 15px; }
+            .control-panel { padding: 20px; }
+            .control-button { padding: 10px 15px; font-size: 0.95em; }
+            .tool-section { padding-bottom: 10px; margin-bottom: 10px; }
+            .tool-section h3 { font-size: 1.2em; margin-bottom: 10px; }
+            .text-overlay-inputs input { font-size: 0.9em; }
+            .control-group { flex-direction: row; } /* Keep buttons inline for mobile */
+        }
+    </style>
+</head>
+<body>
+    <h1>FotoForge Pro</h1>
+
+    <div class="container">
+        <div class="camera-canvas-area">
+            <video id="videoFeed" class="video-feed" autoplay playsinline></video>
+            <canvas id="photoCanvas" class="hidden"></canvas>
+            <div id="croppingOverlay" class="hidden">
+                <div class="crop-guide" id="cropGuide">
+                    <div class="resizer nw"></div>
+                    <div class="resizer ne"></div>
+                    <div class="resizer sw"></div>
+                    <div class="resizer se"></div>
+                </div>
+            </div>
+            <div id="cameraErrorMessage" class="message">
+                Camera access denied or not available. Please allow camera permissions.
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <div class="tool-section">
+                <h3>Camera Controls</h3>
+                <div class="control-group">
+                    <button id="captureButton" class="control-button">Capture Photo</button>
+                    <button id="retakeButton" class="control-button hidden">Retake Photo</button>
+                    <button id="flipCameraButton" class="control-button hidden">Flip Camera</button>
+                </div>
+            </div>
+
+            <div class="tool-section">
+                <h3>Adjustments</h3>
+                <div class="control-group sliders">
+                    <label for="brightness">Brightness:</label>
+                    <input type="range" id="brightness" min="0.5" max="1.5" step="0.01" value="1">
+
+                    <label for="contrast">Contrast:</label>
+                    <input type="range" id="contrast" min="0.5" max="1.5" step="0.01" value="1">
+
+                    <label for="saturation">Saturation:</label>
+                    <input type="range" id="saturation" min="0" max="2" step="0.01" value="1">
+
+                    <label for="hue">Hue:</label>
+                    <input type="range" id="hue" min="0" max="360" step="1" value="0">
+
+                    <label for="exposure">Exposure:</label>
+                    <input type="range" id="exposure" min="0.5" max="1.5" step="0.01" value="1">
+                </div>
+            </div>
+
+            <div class="tool-section">
+                <h3>Filters</h3>
+                <div class="control-group">
+                    <button id="grayscaleBtn" class="control-button">Grayscale</button>
+                    <button id="sepiaBtn" class="control-button">Sepia</button>
+                    <button id="invertBtn" class="control-button">Invert</button>
+                    <button id="blurBtn" class="control-button">Blur</button>
+                    <button id="sharpenBtn" class="control-button">Sharpen</button>
+                    <button id="vignetteBtn" class="control-button">Vignette</button>
+                </div>
+            </div>
+
+            <div class="tool-section">
+                <h3>Cropping</h3>
+                <div class="control-group">
+                    <button id="enableCropBtn" class="control-button">Enable Crop</button>
+                    <button id="applyCropBtn" class="control-button hidden">Apply Crop</button>
+                    <button id="cancelCropBtn" class="control-button hidden">Cancel Crop</button>
+                </div>
+            </div>
+
+            <div class="tool-section">
+                <h3>Text Overlay</h3>
+                <div class="text-overlay-inputs">
+                    <label for="textInput">Text:</label>
+                    <input type="text" id="textInput" placeholder="Enter text...">
+                    <label for="textColor">Color:</label>
+                    <input type="color" id="textColor" value="#FFFFFF">
+                    <label for="fontSize">Font Size (px):</label>
+                    <input type="number" id="fontSize" value="30" min="10" max="100" step="1">
+                </div>
+                <div class="control-group">
+                    <button id="addTextBtn" class="control-button">Add Text</button>
+                </div>
+            </div>
+
+
+            <div class="tool-section">
+                <h3>History & Export</h3>
+                <div class="control-group">
+                    <button id="undoBtn" class="control-button" disabled>Undo</button>
+                    <button id="redoBtn" class="control-button" disabled>Redo</button>
+                    <button id="resetAllEditsBtn" class="control-button">Reset All Edits</button>
+                    <button id="downloadImageBtn" class="control-button">Download Image</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 FotoForge Pro. All rights reserved. Built for creators.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const videoFeed = document.getElementById('videoFeed');
+            const photoCanvas = document.getElementById('photoCanvas');
+            const ctx = photoCanvas.getContext('2d');
+            const cameraCanvasArea = document.querySelector('.camera-canvas-area');
+            const cameraErrorMessage = document.getElementById('cameraErrorMessage');
+
+            const captureButton = document.getElementById('captureButton');
+            const retakeButton = document.getElementById('retakeButton');
+            const flipCameraButton = document.getElementById('flipCameraButton');
+
+            const brightnessSlider = document.getElementById('brightness');
+            const contrastSlider = document.getElementById('contrast');
+            const saturationSlider = document.getElementById('saturation');
+            const hueSlider = document.getElementById('hue');
+            const exposureSlider = document.getElementById('exposure');
+
+            const grayscaleBtn = document.getElementById('grayscaleBtn');
+            const sepiaBtn = document.getElementById('sepiaBtn');
+            const invertBtn = document.getElementById('invertBtn');
+            const blurBtn = document.getElementById('blurBtn');
+            const sharpenBtn = document.getElementById('sharpenBtn');
+            const vignetteBtn = document.getElementById('vignetteBtn');
+
+            const enableCropBtn = document.getElementById('enableCropBtn');
+            const applyCropBtn = document.getElementById('applyCropBtn');
+            const cancelCropBtn = document.getElementById('cancelCropBtn');
+            const croppingOverlay = document.getElementById('croppingOverlay');
+            const cropGuide = document.getElementById('cropGuide');
+
+            const textInput = document.getElementById('textInput');
+            const textColor = document.getElementById('textColor');
+            const fontSize = document.getElementById('fontSize');
+            const addTextBtn = document.getElementById('addTextBtn');
+
+            const undoBtn = document.getElementById('undoBtn');
+            const redoBtn = document.getElementById('redoBtn');
+            const resetAllEditsBtn = document.getElementById('resetAllEditsBtn');
+            const downloadImageBtn = document.getElementById('downloadImageBtn');
+
+            let currentStream;
+            let currentFacingMode = 'environment';
+            let originalImageData = null; // Stored after initial capture
+            let currentImageData = null; // Current pixel data on canvas after all edits
+            let history = [];
+            let historyIndex = -1;
+            let currentActiveFilters = {}; // To manage toggle filters like grayscale, sepia etc.
+            let textOverlay = null; // { text: '', x: 0, y: 0, color: '', size: '' }
+            let isTextDragging = false;
+            let textDragOffsetX, textDragOffsetY;
+
+            // Cropping State Variables
+            let isCropping = false;
+            let cropRect = { x: 0, y: 0, width: 0, height: 0 };
+            let dragCropGuide = false;
+            let resizeCropGuide = false;
+            let startX, startY, startCropWidth, startCropHeight, startCropX, startCropY;
+            let activeResizer = null;
+
+
+            // --- Utility Functions ---
+
+            function saveStateToHistory() {
+                if (!photoCanvas.width || !photoCanvas.height) return;
+
+                // Clear future history if we're not at the latest state
+                if (historyIndex < history.length - 1) {
+                    history = history.slice(0, historyIndex + 1);
+                }
+
+                // Push current canvas content (as URL or ImageData)
+                // ImageData is more precise but uses more memory
+                // For simplicity and memory efficiency, we'll use Data URL for history.
+                // For very large images or many steps, consider storing only applied parameters.
+                history.push(photoCanvas.toDataURL('image/png'));
+                historyIndex++;
+                updateHistoryButtons();
+            }
+
+            function applyStateFromHistory(index) {
+                if (index < 0 || index >= history.length) return;
+
+                const img = new Image();
+                img.onload = () => {
+                    // Temporarily disable re-applying filters
+                    const oldOriginalImageData = originalImageData;
+                    originalImageData = null; // Prevent applyFilters from running on image load
+                    ctx.clearRect(0, 0, photoCanvas.width, photoCanvas.height);
+                    photoCanvas.width = img.width;
+                    photoCanvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                    // After drawing from history, get the imageData for future edits
+                    originalImageData = ctx.getImageData(0, 0, photoCanvas.width, photoCanvas.height);
+                    // Re-enable filters but don't apply them instantly
+                    resetSliders(); // Sliders might not match history state, user can adjust
+                    Object.keys(currentActiveFilters).forEach(key => currentActiveFilters[key] = false); // Reset filter buttons state visually
+                    updateFilterButtons();
+
+                    // Re-draw text overlay if exists
+                    drawTextOverlay();
+                };
+                img.src = history[index];
+                historyIndex = index;
+                updateHistoryButtons();
+            }
+
+            function updateHistoryButtons() {
+                undoBtn.disabled = historyIndex <= 0;
+                redoBtn.disabled = historyIndex >= history.length - 1;
+            }
+
+            function updateFilterButtons() {
+                grayscaleBtn.classList.toggle('active', currentActiveFilters.grayscale);
+                sepiaBtn.classList.toggle('active', currentActiveFilters.sepia);
+                invertBtn.classList.toggle('active', currentActiveFilters.invert);
+                blurBtn.classList.toggle('active', currentActiveFilters.blur);
+                sharpenBtn.classList.toggle('active', currentActiveFilters.sharpen);
+                vignetteBtn.classList.toggle('active', currentActiveFilters.vignette);
+            }
+
+            // --- Camera Functions ---
+            async function setupCamera() {
+                if (currentStream) {
+                    currentStream.getTracks().forEach(track => track.stop());
+                }
+
+                cameraErrorMessage.classList.remove('active');
+
+                const constraints = {
+                    video: {
+                        facingMode: currentFacingMode,
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                };
+
+                try {
+                    currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                    videoFeed.srcObject = currentStream;
+                    videoFeed.play();
+                    videoFeed.classList.remove('hidden');
+                    photoCanvas.classList.add('hidden');
+                    captureButton.classList.remove('hidden');
+                    retakeButton.classList.add('hidden');
+
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+                    const videoInputDevices = devices.filter(device => device.kind === 'videoinput');
+                    if (videoInputDevices.length > 1 && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                        flipCameraButton.classList.remove('hidden');
+                    } else {
+                        flipCameraButton.classList.add('hidden');
+                    }
+
+                    toggleEditControls(false); // Disable all editing until photo is taken
+                    resetAllControls();
+                    disableCropMode();
+
+                } catch (error) {
+                    console.error('Error accessing camera:', error);
+                    cameraErrorMessage.textContent = `Error: ${error.name}. Please ensure camera access is allowed.`;
+                    cameraErrorMessage.classList.add('active');
+                    videoFeed.classList.add('hidden');
+                    flipCameraButton.classList.add('hidden');
+                    captureButton.disabled = true;
+                }
+            }
+
+            function takePhoto() {
+                if (!currentStream) return;
+
+                videoFeed.pause();
+
+                photoCanvas.width = videoFeed.videoWidth;
+                photoCanvas.height = videoFeed.videoHeight;
+                ctx.drawImage(videoFeed, 0, 0, photoCanvas.width, photoCanvas.height);
+                originalImageData = ctx.getImageData(0, 0, photoCanvas.width, photoCanvas.height);
+                currentImageData = originalImageData; // Start with original data
+                saveStateToHistory(); // Save initial captured state
+
+                videoFeed.classList.add('hidden');
+                photoCanvas.classList.remove('hidden');
+                captureButton.classList.add('hidden');
+                retakeButton.classList.remove('hidden');
+                toggleEditControls(true); // Enable editing controls
+            }
+
+            function retakePhoto() {
+                videoFeed.play();
+                videoFeed.classList.remove('hidden');
+                photoCanvas.classList.add('hidden');
+                captureButton.classList.remove('hidden');
+                retakeButton.classList.add('hidden');
+
+                originalImageData = null;
+                currentImageData = null;
+                history = [];
+                historyIndex = -1;
+                textOverlay = null; // Clear any text
+                resetAllControls();
+                disableCropMode();
+                toggleEditControls(false); // Disable editing controls
+            }
+
+            function flipCamera() {
+                currentFacingMode = (currentFacingMode === 'user') ? 'environment' : 'user';
+                setupCamera();
+            }
+
+            // --- Image Editing Functions ---
+
+            // Core image processing function
+            function applyAllEdits() {
+                if (!originalImageData) return;
+
+                // Start with the original data (or the last cropped data)
+                const imageData = new ImageData(
+                    new Uint8ClampedArray(originalImageData.data),
+                    originalImageData.width,
+                    originalImageData.height
+                );
+                const data = imageData.data;
+                const width = imageData.width;
+                const height = imageData.height;
+
+                const brightnessVal = parseFloat(brightnessSlider.value);
+                const contrastVal = parseFloat(contrastSlider.value);
+                const saturationVal = parseFloat(saturationSlider.value);
+                const hueVal = parseFloat(hueSlider.value); // 0-360 degrees
+                const exposureVal = parseFloat(exposureSlider.value);
+
+                // --- Apply Adjustments ---
+                const factor = (259 * (contrastVal * 255 + 255)) / (255 * (259 - contrastVal * 255));
+                const exposureAdjustment = (exposureVal - 1) * 255; // Simple exposure offset
+
+                for (let i = 0; i < data.length; i += 4) {
+                    let r = data[i];
+                    let g = data[i+1];
+                    let b = data[i+2];
+
+                    // Exposure (simple offset)
+                    r += exposureAdjustment;
+                    g += exposureAdjustment;
+                    b += exposureAdjustment;
+
+                    // Brightness
+                    r *= brightnessVal;
+                    g *= brightnessVal;
+                    b *= brightnessVal;
+
+                    // Contrast
+                    r = factor * (r - 128) + 128;
+                    g = factor * (g - 128) + 128;
+                    b = factor * (b - 128) + 128;
+
+                    // Saturation (Luminance preserving)
+                    const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+                    r = lum + saturationVal * (r - lum);
+                    g = lum + saturationVal * (g - lum);
+                    b = lum + saturationVal * (b - lum);
+
+                    // Hue (RGB to HSL, adjust H, HSL to RGB)
+                    // Simplified hue rotation without full HSL conversion for performance
+                    if (hueVal !== 0) {
+                        const cosH = Math.cos(hueVal * Math.PI / 180);
+                        const sinH = Math.sin(hueVal * Math.PI / 180);
+                        const matrix = [
+                            [0.299 + 0.701 * cosH + 0.167 * sinH, 0.587 - 0.587 * cosH + 0.330 * sinH, 0.114 - 0.114 * cosH - 0.497 * sinH],
+                            [0.299 - 0.299 * cosH - 0.167 * sinH, 0.587 + 0.413 * cosH + 0.035 * sinH, 0.114 - 0.114 * cosH + 0.130 * sinH],
+                            [0.299 - 0.299 * cosH + 0.833 * sinH, 0.587 - 0.587 * cosH - 0.833 * sinH, 0.114 + 0.886 * cosH - 0.163 * sinH]
+                        ];
+                        const newR = r * matrix[0][0] + g * matrix[0][1] + b * matrix[0][2];
+                        const newG = r * matrix[1][0] + g * matrix[1][1] + b * matrix[1][2];
+                        const newB = r * matrix[2][0] + g * matrix[2][1] + b * matrix[2][2];
+                        r = newR; g = newG; b = newB;
+                    }
+
+
+                    // Clamp values
+                    data[i] = Math.max(0, Math.min(255, r));
+                    data[i+1] = Math.max(0, Math.min(255, g));
+                    data[i+2] = Math.max(0, Math.min(255, b));
+                }
+
+                // --- Apply Filters (on the potentially adjusted image data) ---
+                if (currentActiveFilters.grayscale) {
+                    for (let i = 0; i < data.length; i += 4) {
+                        const avg = (data[i] + data[i+1] + data[i+2]) / 3;
+                        data[i] = avg;
+                        data[i+1] = avg;
+                        data[i+2] = avg;
+                    }
+                }
+                if (currentActiveFilters.sepia) {
+                    for (let i = 0; i < data.length; i += 4) {
+                        const r = data[i];
+                        const g = data[i+1];
+                        const b = data[i+2];
+                        data[i] = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189));
+                        data[i+1] = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168));
+                        data[i+2] = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131));
+                    }
+                }
+                if (currentActiveFilters.invert) {
+                    for (let i = 0; i < data.length; i += 4) {
+                        data[i] = 255 - data[i];
+                        data[i+1] = 255 - data[i+1];
+                        data[i+2] = 255 - data[i+2];
+                    }
+                }
+
+                ctx.putImageData(imageData, 0, 0); // Put base image with adjustments/filters
+
+                // Apply convolution filters (Blur/Sharpen) on top of the current canvas state
+                if (currentActiveFilters.blur || currentActiveFilters.sharpen) {
+                    const pixels = ctx.getImageData(0, 0, width, height);
+                    const filteredPixels = new ImageData(new Uint8ClampedArray(pixels.data), width, height);
+                    const d = filteredPixels.data; // reference to new pixel data
+
+                    // Choose kernel based on active filter
+                    let kernel = [];
+                    if (currentActiveFilters.blur) {
+                        kernel = [
+                            1 / 9, 1 / 9, 1 / 9,
+                            1 / 9, 1 / 9, 1 / 9,
+                            1 / 9, 1 / 9, 1 / 9
+                        ];
+                    } else if (currentActiveFilters.sharpen) {
+                        kernel = [
+                            0, -1, 0,
+                            -1, 5, -1,
+                            0, -1, 0
+                        ];
+                    }
+                    const kernelSize = Math.sqrt(kernel.length);
+                    const halfKernel = Math.floor(kernelSize / 2);
+
+                    for (let y = 0; y < height; y++) {
+                        for (let x = 0; x < width; x++) {
+                            let r = 0, g = 0, b = 0;
+                            for (let ky = 0; ky < kernelSize; ky++) {
+                                for (let kx = 0; kx < kernelSize; kx++) {
+                                    const pixelX = x + kx - halfKernel;
+                                    const pixelY = y + ky - halfKernel;
+
+                                    if (pixelX >= 0 && pixelX < width && pixelY >= 0 && pixelY < height) {
+                                        const srcIndex = (pixelY * width + pixelX) * 4;
+                                        const kernelVal = kernel[ky * kernelSize + kx];
+                                        r += pixels.data[srcIndex] * kernelVal;
+                                        g += pixels.data[srcIndex + 1] * kernelVal;
+                                        b += pixels.data[srcIndex + 2] * kernelVal;
+                                    }
+                                }
+                            }
+                            const destIndex = (y * width + x) * 4;
+                            d[destIndex] = Math.max(0, Math.min(255, r));
+                            d[destIndex + 1] = Math.max(0, Math.min(255, g));
+                            d[destIndex + 2] = Math.max(0, Math.min(255, b));
+                            d[destIndex + 3] = pixels.data[destIndex + 3]; // Alpha channel
+                        }
+                    }
+                    ctx.putImageData(filteredPixels, 0, 0);
+                }
+
+                // Apply Vignette on top
+                if (currentActiveFilters.vignette) {
+                    const vignettePixels = ctx.getImageData(0, 0, width, height);
+                    const vd = vignettePixels.data;
+                    const centerX = width / 2;
+                    const centerY = height / 2;
+                    const maxDist = Math.sqrt(centerX * centerX + centerY * centerY);
+
+                    for (let y = 0; y < height; y++) {
+                        for (let x = 0; x < width; x++) {
+                            const dist = Math.sqrt((x - centerX) * (x - centerX) + (y - centerY) * (y - centerY));
+                            const factor = 1 - (dist / maxDist) * 0.6; // Adjust 0.6 for intensity
+
+                            const i = (y * width + x) * 4;
+                            vd[i] *= factor;
+                            vd[i+1] *= factor;
+                            vd[i+2] *= factor;
+                        }
+                    }
+                    ctx.putImageData(vignettePixels, 0, 0);
+                }
+                drawTextOverlay(); // Redraw text always on top
+            }
+
+            function toggleFilter(button, filterName) {
+                currentActiveFilters[filterName] = !currentActiveFilters[filterName];
+                button.classList.toggle('active', currentActiveFilters[filterName]);
+                applyAllEdits();
+                saveStateToHistory(); // Save state after applying/removing filter
+            }
+
+            function resetAllControls() {
+                brightnessSlider.value = 1;
+                contrastSlider.value = 1;
+                saturationSlider.value = 1;
+                hueSlider.value = 0;
+                exposureSlider.value = 1;
+
+                currentActiveFilters = {
+                    grayscale: false,
+                    sepia: false,
+                    invert: false,
+                    blur: false,
+                    sharpen: false,
+                    vignette: false
+                };
+                updateFilterButtons();
+
+                textInput.value = '';
+                textColor.value = '#FFFFFF';
+                fontSize.value = 30;
+                textOverlay = null; // Remove text overlay
+            }
+
+            function resetAllEdits() {
+                if (originalImageData) {
+                    ctx.clearRect(0, 0, photoCanvas.width, photoCanvas.height); // Clear to prevent artifacts
+                    photoCanvas.width = originalImageData.width; // Reset canvas dimensions to original
+                    photoCanvas.height = originalImageData.height;
+                    ctx.putImageData(originalImageData, 0, 0);
+                    currentImageData = originalImageData; // Reset current image data
+
+                    resetAllControls(); // Reset all sliders and filters
+                    saveStateToHistory(); // Save this reset state
+                }
+            }
+
+            function downloadImage() {
+                if (!originalImageData) {
+                    alert('No photo to download!');
+                    return;
+                }
+                const link = document.createElement('a');
+                link.download = `fotoforge-pro-${Date.now()}.jpg`;
+                link.href = photoCanvas.toDataURL('image/jpeg', 0.9);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+
+            function toggleEditControls(enable) {
+                const controlsToToggle = [
+                    brightnessSlider, contrastSlider, saturationSlider, hueSlider, exposureSlider,
+                    grayscaleBtn, sepiaBtn, invertBtn, blurBtn, sharpenBtn, vignetteBtn,
+                    enableCropBtn, resetAllEditsBtn, downloadImageBtn,
+                    textInput, textColor, fontSize, addTextBtn
+                ];
+                controlsToToggle.forEach(control => {
+                    control.disabled = !enable;
+                    if (enable) {
+                        control.classList.remove('disabled');
+                    } else {
+                        control.classList.add('disabled');
+                    }
+                });
+                // History buttons are handled by updateHistoryButtons()
+            }
+
+            // --- Cropping Functions ---
+            function enableCropMode() {
+                if (!originalImageData) return;
+
+                isCropping = true;
+                croppingOverlay.classList.add('active');
+                enableCropBtn.classList.add('hidden');
+                applyCropBtn.classList.remove('hidden');
+                cancelCropBtn.classList.remove('hidden');
+                cropGuide.classList.remove('hidden');
+
+                // Initial crop guide to cover the whole image
+                const canvasRect = photoCanvas.getBoundingClientRect();
+                cropRect.x = 0;
+                cropRect.y = 0;
+                cropRect.width = photoCanvas.width; // Use canvas dimensions for initial crop
+                cropRect.height = photoCanvas.height;
+                updateCropGuidePosition();
+
+                // Disable other editing tools while cropping
+                toggleEditControls(false); // Disable all editing sliders and filters
+                applyCropBtn.disabled = false;
+                cancelCropBtn.disabled = false;
+            }
+
+            function disableCropMode() {
+                isCropping = false;
+                croppingOverlay.classList.remove('active');
+                enableCropBtn.classList.remove('hidden');
+                applyCropBtn.classList.add('hidden');
+                cancelCropBtn.classList.add('hidden');
+                cropGuide.classList.add('hidden');
+
+                // Re-enable editing tools if a photo is captured
+                if (originalImageData) {
+                    toggleEditControls(true);
+                }
+            }
+
+            function updateCropGuidePosition() {
+                // Scale cropRect based on actual canvas display size for overlay
+                const canvasDisplayWidth = photoCanvas.clientWidth;
+                const canvasDisplayHeight = photoCanvas.clientHeight;
+                const scaleX = canvasDisplayWidth / photoCanvas.width;
+                const scaleY = canvasDisplayHeight / photoCanvas.height;
+
+                cropGuide.style.left = `${cropRect.x * scaleX}px`;
+                cropGuide.style.top = `${cropRect.y * scaleY}px`;
+                cropGuide.style.width = `${cropRect.width * scaleX}px`;
+                cropGuide.style.height = `${cropRect.height * scaleY}px`;
+            }
+
+            function applyCrop() {
+                if (!originalImageData || !isCropping) return;
+
+                // Create a temporary canvas to draw the cropped image
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = cropRect.width;
+                tempCanvas.height = cropRect.height;
+                const tempCtx = tempCanvas.getContext('2d');
+
+                // Draw the current state of photoCanvas onto the temp canvas, cropped
+                tempCtx.drawImage(
+                    photoCanvas, // Source image (the current state of main canvas)
+                    cropRect.x, cropRect.y, cropRect.width, cropRect.height, // Source rectangle on photoCanvas
+                    0, 0, cropRect.width, cropRect.height // Destination rectangle on tempCanvas
+                );
+
+                // Update the main canvas with the cropped image
+                photoCanvas.width = tempCanvas.width;
+                photoCanvas.height = tempCanvas.height;
+                ctx.clearRect(0, 0, photoCanvas.width, photoCanvas.height);
+                ctx.drawImage(tempCanvas, 0, 0);
+
+                // Update originalImageData to the new cropped image for subsequent edits
+                originalImageData = ctx.getImageData(0, 0, photoCanvas.width, photoCanvas.height);
+
+                disableCropMode();
+                saveStateToHistory(); // Save the cropped state
+            }
+
+            // --- Cropping Mouse Events ---
+            croppingOverlay.addEventListener('mousedown', (e) => {
+                if (!isCropping) return;
+
+                const rect = photoCanvas.getBoundingClientRect(); // Get canvas display size
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                // Scale mouse position to canvas resolution
+                const scaleX = photoCanvas.width / photoCanvas.clientWidth;
+                const scaleY = photoCanvas.height / photoCanvas.clientHeight;
+                const canvasMouseX = mouseX * scaleX;
+                const canvasMouseY = mouseY * scaleY;
+
+                // Check if a resizer is clicked
+                const resizers = cropGuide.querySelectorAll('.resizer');
+                for (let i = 0; i < resizers.length; i++) {
+                    const r = resizers[i].getBoundingClientRect();
+                    if (mouseX >= (r.left - rect.left) && mouseX <= (r.right - rect.left) &&
+                        mouseY >= (r.top - rect.top) && mouseY <= (r.bottom - rect.top)) {
+                        resizeCropGuide = true;
+                        activeResizer = resizers[i];
+                        startX = canvasMouseX;
+                        startY = canvasMouseY;
+                        startCropWidth = cropRect.width;
+                        startCropHeight = cropRect.height;
+                        startCropX = cropRect.x;
+                        startCropY = cropRect.y;
+                        cropGuide.classList.add('dragging');
+                        return;
+                    }
+                }
+
+                // Check if inside crop guide for dragging
+                if (canvasMouseX >= cropRect.x && canvasMouseX <= (cropRect.x + cropRect.width) &&
+                    canvasMouseY >= cropRect.y && canvasMouseY <= (cropRect.y + cropRect.height)) {
+                    dragCropGuide = true;
+                    startX = canvasMouseX;
+                    startY = canvasMouseY;
+                    startCropX = cropRect.x;
+                    startCropY = cropRect.y;
+                    cropGuide.classList.add('dragging');
+                }
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isCropping || (!dragCropGuide && !resizeCropGuide)) return;
+
+                const rect = photoCanvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                const scaleX = photoCanvas.width / photoCanvas.clientWidth;
+                const scaleY = photoCanvas.height / photoCanvas.clientHeight;
+                const canvasMouseX = mouseX * scaleX;
+                const canvasMouseY = mouseY * scaleY;
+
+                const dx = canvasMouseX - startX;
+                const dy = canvasMouseY - startY;
+
+                const minSize = 50; // Minimum crop size in canvas pixels
+
+                if (dragCropGuide) {
+                    cropRect.x = startCropX + dx;
+                    cropRect.y = startCropY + dy;
+
+                    // Keep crop guide within canvas bounds
+                    cropRect.x = Math.max(0, Math.min(cropRect.x, photoCanvas.width - cropRect.width));
+                    cropRect.y = Math.max(0, Math.min(cropRect.y, photoCanvas.height - cropRect.height));
+
+                } else if (resizeCropGuide && activeResizer) {
+                    if (activeResizer.classList.contains('nw')) {
+                        cropRect.x = Math.min(startCropX + dx, startCropX + startCropWidth - minSize);
+                        cropRect.y = Math.min(startCropY + dy, startCropY + startCropHeight - minSize);
+                        cropRect.width = startCropWidth - (cropRect.x - startCropX);
+                        cropRect.height = startCropHeight - (cropRect.y - startCropY);
+                    } else if (activeResizer.classList.contains('ne')) {
+                        cropRect.y = Math.min(startCropY + dy, startCropY + startCropHeight - minSize);
+                        cropRect.width = Math.max(minSize, startCropWidth + dx);
+                        cropRect.height = startCropHeight - (cropRect.y - startCropY);
+                    } else if (activeResizer.classList.contains('sw')) {
+                        cropRect.x = Math.min(startCropX + dx, startCropX + startCropWidth - minSize);
+                        cropRect.width = startCropWidth - (cropRect.x - startCropX);
+                        cropRect.height = Math.max(minSize, startCropHeight + dy);
+                    } else if (activeResizer.classList.contains('se')) {
+                        cropRect.width = Math.max(minSize, startCropWidth + dx);
+                        cropRect.height = Math.max(minSize, startCropHeight + dy);
+                    }
+
+                    // Clamp to canvas bounds during resize
+                    cropRect.x = Math.max(0, cropRect.x);
+                    cropRect.y = Math.max(0, cropRect.y);
+                    cropRect.width = Math.min(photoCanvas.width - cropRect.x, cropRect.width);
+                    cropRect.height = Math.min(photoCanvas.height - cropRect.y, cropRect.height);
+                }
+                updateCropGuidePosition();
+            });
+
+            document.addEventListener('mouseup', () => {
+                dragCropGuide = false;
+                resizeCropGuide = false;
+                activeResizer = null;
+                cropGuide.classList.remove('dragging');
+            });
+
+            // --- Text Overlay Functions ---
+            function addTextToImage() {
+                const text = textInput.value.trim();
+                const color = textColor.value;
+                const size = parseInt(fontSize.value, 10);
+
+                if (!text || !originalImageData) {
+                    alert('Please enter text and capture a photo first!');
+                    return;
+                }
+
+                // Initial position (center of the canvas)
+                const textX = photoCanvas.width / 2;
+                const textY = photoCanvas.height / 2;
+
+                textOverlay = { text, x: textX, y: textY, color, size, font: `${size}px Montserrat` };
+                applyAllEdits(); // Re-apply all edits and then draw text on top
+                saveStateToHistory(); // Save state with text
+
+                // Make text draggable on the canvas
+                photoCanvas.addEventListener('mousedown', startTextDrag);
+                photoCanvas.style.cursor = 'grab';
+            }
+
+            function drawTextOverlay() {
+                if (!textOverlay) return;
+
+                // Ensure the base image is drawn first by applyAllEdits
+                ctx.font = textOverlay.font;
+                ctx.fillStyle = textOverlay.color;
+                ctx.textAlign = 'center'; // Center text on its x,y
+                ctx.textBaseline = 'middle'; // Center text on its x,y
+
+                // Optional: add a stroke for better visibility on varying backgrounds
+                ctx.strokeStyle = '#000000'; // Black stroke
+                ctx.lineWidth = 2; // Stroke width
+                ctx.strokeText(textOverlay.text, textOverlay.x, textOverlay.y);
+                ctx.fillText(textOverlay.text, textOverlay.x, textOverlay.y);
+            }
+
+            function startTextDrag(e) {
+                if (!textOverlay || isCropping) return;
+
+                const rect = photoCanvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                // Check if mouse is over the text
+                ctx.font = textOverlay.font;
+                const textMetrics = ctx.measureText(textOverlay.text);
+                const textWidth = textMetrics.width;
+                const textHeight = parseInt(textOverlay.font, 10); // Approximation
+
+                const textLeft = textOverlay.x - textWidth / 2;
+                const textRight = textOverlay.x + textWidth / 2;
+                const textTop = textOverlay.y - textHeight / 2;
+                const textBottom = textOverlay.y + textHeight / 2;
+
+                // Scale mouse position to canvas resolution
+                const scaleX = photoCanvas.width / photoCanvas.clientWidth;
+                const scaleY = photoCanvas.height / photoCanvas.clientHeight;
+                const canvasMouseX = mouseX * scaleX;
+                const canvasMouseY = mouseY * scaleY;
+
+
+                if (canvasMouseX >= textLeft && canvasMouseX <= textRight &&
+                    canvasMouseY >= textTop && canvasMouseY <= textBottom) {
+                    isTextDragging = true;
+                    textDragOffsetX = canvasMouseX - textOverlay.x;
+                    textDragOffsetY = canvasMouseY - textOverlay.y;
+                    photoCanvas.style.cursor = 'grabbing';
+                }
+            }
+
+            function dragText(e) {
+                if (!isTextDragging) return;
+
+                const rect = photoCanvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                const scaleX = photoCanvas.width / photoCanvas.clientWidth;
+                const scaleY = photoCanvas.height / photoCanvas.clientHeight;
+                const canvasMouseX = mouseX * scaleX;
+                const canvasMouseY = mouseY * scaleY;
+
+                textOverlay.x = canvasMouseX - textDragOffsetX;
+                textOverlay.y = canvasMouseY - textDragOffsetY;
+
+                applyAllEdits(); // Redraw image and then text
+            }
+
+            function endTextDrag() {
+                if (isTextDragging) {
+                    isTextDragging = false;
+                    photoCanvas.style.cursor = 'grab';
+                    saveStateToHistory(); // Save state after moving text
+                }
+            }
+
+
+            // --- Event Listeners ---
+            captureButton.addEventListener('click', takePhoto);
+            retakeButton.addEventListener('click', retakePhoto);
+            flipCameraButton.addEventListener('click', flipCamera);
+
+            // Adjustment sliders
+            brightnessSlider.addEventListener('input', applyAllEdits);
+            contrastSlider.addEventListener('input', applyAllEdits);
+            saturationSlider.addEventListener('input', applyAllEdits);
+            hueSlider.addEventListener('input', applyAllEdits);
+            exposureSlider.addEventListener('input', applyAllEdits);
+
+            // Filters
+            grayscaleBtn.addEventListener('click', () => toggleFilter(grayscaleBtn, 'grayscale'));
+            sepiaBtn.addEventListener('click', () => toggleFilter(sepiaBtn, 'sepia'));
+            invertBtn.addEventListener('click', () => toggleFilter(invertBtn, 'invert'));
+            blurBtn.addEventListener('click', () => toggleFilter(blurBtn, 'blur'));
+            sharpenBtn.addEventListener('click', () => toggleFilter(sharpenBtn, 'sharpen'));
+            vignetteBtn.addEventListener('click', () => toggleFilter(vignetteBtn, 'vignette'));
+
+            // Cropping
+            enableCropBtn.addEventListener('click', enableCropMode);
+            applyCropBtn.addEventListener('click', applyCrop);
+            cancelCropBtn.addEventListener('click', disableCropMode);
+
+            // Text Overlay
+            addTextBtn.addEventListener('click', addTextToImage);
+            textInput.addEventListener('input', applyAllEdits);
+            textColor.addEventListener('input', applyAllEdits);
+            fontSize.addEventListener('input', applyAllEdits);
+
+            photoCanvas.addEventListener('mousemove', dragText);
+            photoCanvas.addEventListener('mouseup', endTextDrag);
+            photoCanvas.addEventListener('mouseout', endTextDrag); // End drag if mouse leaves canvas
+
+            // History & Download
+            undoBtn.addEventListener('click', () => applyStateFromHistory(historyIndex - 1));
+            redoBtn.addEventListener('click', () => applyStateFromHistory(historyIndex + 1));
+            resetAllEditsBtn.addEventListener('click', resetAllEdits);
+            downloadImageBtn.addEventListener('click', downloadImage);
+
+            // Initial setup
+            setupCamera();
+            toggleEditControls(false); // Disable editing controls initially
+            updateHistoryButtons(); // Disable undo/redo initially
+        });
+    </script>
+</body>
+</html>
